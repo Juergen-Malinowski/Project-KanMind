@@ -35,3 +35,28 @@ Current progress includes:
 - CORS configuration for local frontend-backend communication
 - centralized root URL configuration in `core/urls.py`
 - initial API endpoint structure based on the provided documentation
+
+## API Routing Overview
+
+The API routing has been fully structured according to the provided documentation and aligned with the frontend configuration.
+
+The following endpoints are prepared:
+
+- Authentication:
+  - /api/registration/
+  - /api/login/
+  - /api/email-check/
+
+- Boards:
+  - /api/boards/
+  - /api/boards/{board_id}/
+
+- Tasks:
+  - /api/tasks/
+  - /api/tasks/assigned-to-me/
+  - /api/tasks/reviewing/
+  - /api/tasks/{task_id}/
+  - /api/tasks/{task_id}/comments/
+  - /api/tasks/{task_id}/comments/{comment_id}/
+
+All routes are organized in a modular structure using app-specific API modules and centralized routing via `core/urls.py`.
