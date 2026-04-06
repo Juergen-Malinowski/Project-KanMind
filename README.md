@@ -14,3 +14,13 @@ Backend project for the KanMind application built with Django and Django REST Fr
 
 - Django
 - Django REST Framework
+
+## Current Project Structure
+
+The backend project was initialized with Django and Django REST Framework.
+
+Current setup includes:
+
+- core project configuration
+- app structure for authentication, boards and tasks
+- dedicated API folders inside each app for serializers, views and URL configuration
