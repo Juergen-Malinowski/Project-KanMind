@@ -90,3 +90,29 @@ Important:
 - The `.env` file must never be committed to the repository
 - Each developer must generate their own `SECRET_KEY`
 - If a `SECRET_KEY` was exposed, it must be replaced immediately
+
+## Custom User Model
+
+This project uses a custom user model based on Django’s `AbstractBaseUser` and `PermissionsMixin`.
+
+### Key characteristics
+
+- Authentication is based on `email` instead of a username
+- A `fullname` field is used instead of separate first and last names
+- The default Django user model is fully replaced via:
+
+```env
+AUTH_USER_MODEL = "auth_app.User"
+```
+
+### Implementation details
+
+- `AbstractBaseUser` handles authentication (password, login)
+- `PermissionsMixin` provides authorization (roles, permissions, superuser)
+- A custom `UserManager` is used to control user creation
+
+### Important notes
+
+- The custom user model must be defined **before running initial migrations**
+- All future relations to users must use `settings.AUTH_USER_MODEL`
+- The model is designed to match the frontend requirements (email-based login and fullname usage)
