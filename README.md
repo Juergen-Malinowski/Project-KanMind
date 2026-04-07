@@ -4,37 +4,46 @@ Backend project for the KanMind application built with Django and Django REST Fr
 
 ## Setup
 
-1. Create virtual environment
-2. Install dependencies:
-   pip install -r requirements.txt
-3. Run server:
-   python manage.py runserver
+Run the following commands to set up the project locally:
 
-## Tech Stack
+```bash
+# Clone repository
+git clone <your-repository-url>
+cd backend
 
-- Django
-- Django REST Framework
+# Create virtual environment
+python -m venv .venv
 
-## Current Project Structure
+# Activate virtual environment (Windows)
+.venv\Scripts\activate
 
-The backend project was initialized with Django and Django REST Framework.
+# Activate virtual environment (Linux / Mac)
+source .venv/bin/activate
 
-Current setup includes:
+# Install dependencies
+pip install -r requirements.txt
 
-- core project configuration
-- app structure for authentication, boards and tasks
-- dedicated API folders inside each app for serializers, views and URL configuration
+# Create .env file from template (Windows)
+copy .env.template .env
 
-## Current Project Status
+# Create .env file from template (Linux / Mac)
+cp .env.template .env
 
-The backend base setup has been further extended with a modular API routing structure.
+# Generate a new Django SECRET_KEY
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 
-Current progress includes:
+# Open .env and insert your SECRET_KEY
 
-- integration of token authentication using Django REST Framework
-- CORS configuration for local frontend-backend communication
-- centralized root URL configuration in `core/urls.py`
-- initial API endpoint structure based on the provided documentation
+# Apply migrations
+python manage.py makemigrations
+python manage.py migrate
+
+# Create superuser
+python manage.py createsuperuser
+
+# Run development server
+python manage.py runserver
+```
 
 ## API Routing Overview
 
@@ -60,6 +69,30 @@ The following endpoints are prepared:
   - /api/tasks/{task_id}/comments/{comment_id}/
 
 All routes are organized in a modular structure using app-specific API modules and centralized routing via `core/urls.py`.
+
+## Tech Stack
+
+- Django
+- Django REST Framework
+
+## Current Project Structure
+
+Current setup includes:
+
+- core project configuration
+- app structure for authentication, boards and tasks
+- dedicated API folders inside each app for serializers, views and URL configuration
+
+## Current Project Status
+
+The backend base setup has been further extended with a modular API routing structure.
+
+Current progress includes:
+
+- integration of token authentication using Django REST Framework
+- CORS configuration for local frontend-backend communication
+- centralized root URL configuration in `core/urls.py`
+- initial API endpoint structure based on the provided documentation
 
 ## Environment Setup
 
