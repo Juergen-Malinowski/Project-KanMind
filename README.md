@@ -60,3 +60,33 @@ The following endpoints are prepared:
   - /api/tasks/{task_id}/comments/{comment_id}/
 
 All routes are organized in a modular structure using app-specific API modules and centralized routing via `core/urls.py`.
+
+## Environment Setup
+
+This project uses environment variables to securely manage sensitive data such as the Django `SECRET_KEY`.
+
+### Setup instructions
+
+After cloning the repository, you must create your own `.env` file in the project root directory.
+
+1. Copy the provided `.env.template` file
+2. Rename it to `.env`
+3. Insert your own generated Django `SECRET_KEY`
+
+Example:
+
+```env
+SECRET_KEY=your_secret_key_here
+```
+
+If your key contains special characters such as `#`, use double quotes:
+
+```env
+SECRET_KEY="your_secret_key_here"
+```
+
+Important:
+
+- The `.env` file must never be committed to the repository
+- Each developer must generate their own `SECRET_KEY`
+- If a `SECRET_KEY` was exposed, it must be replaced immediately
