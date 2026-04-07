@@ -75,3 +75,14 @@ class LoginSerializer(serializers.Serializer):
         
         attrs["user"] = user
         return attrs
+
+
+class EmailCheckSerializer(serializers.Serializer):
+    """Serializer for email existence check"""
+
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        """Normalize email to lowercase."""
+
+        return value.lower()
