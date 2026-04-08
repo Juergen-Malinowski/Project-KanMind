@@ -1,11 +1,15 @@
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Prefetch
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from boards_app.models import Board
-from .serializers import BoardListSerializer, BoardCreateSerializer
+from tasks_app.models import Task
+from .serializers import (
+    BoardListSerializer, BoardCreateSerializer,
+    BoardDetailSerializer, BoardUpdateSerializer,
+)
 
 
 class BoardListCreateView(generics.ListCreateAPIView):
@@ -80,6 +84,53 @@ class BoardListCreateView(generics.ListCreateAPIView):
         return Response(response_serializer.data, status=201)
 
 
-class BoardDetailView(APIView):
-    # für <int:board_id>/ später klären ob GET, UPDATE und DELETE in einer View sinnvoll !
-    pass
+class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """API view to retrieve, update and delete a board."""
+
+    permission_classes = [IsAuthenticated]
+    lookup_field = "id"
+    lookup_url_kwarg = "board_id"
+
+    def get_serializer_class(self):
+        """Return serializer depending on request method."""
+
+        if self.request.method == "PATCH":
+            return BoardUpdateSerializer
+        return BoardDetailSerializer
+    
+    def get_queryset(self):
+        """Return queryset with related data for board detail."""
+
+        task_queryset = Task.objects.select_related(
+            "assignee",
+            "reviewer",
+        ).annotate(
+            comments_count=Count("comments")
+        )
+
+        return Board.objects.select_related(
+            "owner"
+        ).prefetch_related(
+            "members",
+            Prefetch("tasks", queryset=task_queryset),
+        ).distinct()
+
+    def get_object(self):
+        """Return board and enforce method-specific permission."""
+
+        board = super().get_object()
+        user = self.request.user
+
+        if self.request.method in ["GET", "PATCH"]:
+            if board.owner != user and not board.members.filter(id=user.id).exists():
+                raise PermissionDenied(
+                    "You must be the owner or a member of this board."
+                )
+        
+        if self.request.method == "DELETE":
+            if board.owner != user:
+                raise PermissionDenied(
+                    "Only the owner can delete this board."
+                )
+            
+        return board
