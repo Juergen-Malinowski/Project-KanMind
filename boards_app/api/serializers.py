@@ -1,6 +1,10 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 
 from boards_app.models import Board
+
+
+User = get_user_model()
 
 
 class BoardListSerializer(serializers.ModelSerializer):
@@ -14,7 +18,7 @@ class BoardListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Board
-        fields=[
+        fields = [
             "id",
             "title",
             "member_count",
@@ -23,3 +27,33 @@ class BoardListSerializer(serializers.ModelSerializer):
             "tasks_high_prio_count",
             "owner_id",
         ]
+
+
+class BoardCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a board."""
+
+    members = serializers.PrimaryKeyRelatedField(
+        many=True,
+        queryset=User.objects.all(),
+        required=False,
+    )
+
+    class Meta:
+        model = Board
+        fields = ["title", "members"]
+
+    def create(self, validated_data):
+        """Create a board with owner and members."""
+
+        members = validated_data.pop("members", [])
+        user = self.context["request"].user
+
+        board = Board.objects.create(
+            owner=user,
+            **validated_data
+        )
+
+        if members:
+            board.members.set(members)
+        
+        return board

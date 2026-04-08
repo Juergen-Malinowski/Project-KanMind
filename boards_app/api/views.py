@@ -1,18 +1,24 @@
 from django.db.models import Count, Q
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from boards_app.models import Board
-from .serializers import BoardListSerializer
+from .serializers import BoardListSerializer, BoardCreateSerializer
 
 
-class BoardListView(generics.ListAPIView):
-    """API view to list boards for the authenticated user"""
+class BoardListCreateView(generics.ListCreateAPIView):
+    """API view to list and create boards."""
 
-    serializer_class = BoardListSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_serializer_class(self):
+        """Return serializer depending on request method."""
+        if self.request.method == "POST":
+            return BoardCreateSerializer
+        return BoardListSerializer
+    
     def get_queryset(self):
         """Return filtered and annotated boards."""
 
@@ -42,10 +48,36 @@ class BoardListView(generics.ListAPIView):
 
         return queryset
     
+    def create(self, request, *args, **kwargs):
+        """Create board and return annotated response."""
 
-class BoardView(APIView):
-    # Klärung später, ob für GET und POST eine oder zwei Views sinnvoll !
-    pass
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        board = serializer.save()
+
+        board = (
+            Board.objects.filter(id=board.id)
+            .annotate(
+                member_count=Count("members", distinct=True),
+                ticket_count=Count("tasks", distinct=True),
+                tasks_to_do_count=Count(
+                    "tasks",
+                    filter=Q(tasks__status="to-do"),
+                    distinct=True,
+                ),
+                tasks_high_prio_count=Count(
+                    "tasks",
+                    filter=Q(tasks__priority="high"),
+                    distinct=True,
+                ),
+            )
+            .first()
+        )
+
+        response_serializer = BoardListSerializer(board)
+
+        return Response(response_serializer.data, status=201)
 
 
 class BoardDetailView(APIView):
