@@ -149,3 +149,81 @@ AUTH_USER_MODEL = "auth_app.User"
 - The custom user model must be defined **before running initial migrations**
 - All future relations to users must use `settings.AUTH_USER_MODEL`
 - The model is designed to match the frontend requirements (email-based login and fullname usage)
+
+## 📦 Data Model Overview
+
+### User
+
+Custom user model used for authentication.
+
+- `email`
+- `fullname`
+
+---
+
+### Board
+
+Represents a workspace that contains tasks and members.
+
+- `title`
+- `owner` (User)
+- `members` (User)
+
+---
+
+### Task
+
+Represents a work item within a board.
+
+- `title`
+- `description`
+- `status` (`to-do`, `in-progress`, `review`, `done`)
+- `priority` (`low`, `medium`, `high`)
+- `assignee` (User)
+- `reviewer` (User)
+- `members` (User)
+- `due_date`
+
+---
+
+### Comment
+
+Represents user-generated activity on a task.
+
+- `content`
+- `author` (User)
+- `task` (Task)
+- `created_at`
+
+---
+
+## 🔗 Relationships
+
+### from Board
+
+- `owner` → User (**1:n**)
+- `members` ↔ User (**m:n**)
+
+### from Task
+
+- `board` → Board (**n:1**)
+- `assignee` → User (**n:1**)
+- `reviewer` → User (**n:1**)
+- `members` ↔ User (**m:n**)
+
+### from Comment
+
+- `task` → Task (**n:1**)
+- `author` → User (**n:1**)
+
+---
+
+## 🧠 Concept
+
+Each task defines clear responsibilities:
+
+- **Assignee** → responsible for executing the task
+- **Reviewer** → responsible for validating the result
+- **Members** → optional collaborators involved in the task
+
+This structure enables clear task ownership, review workflows, and team collaboration.
