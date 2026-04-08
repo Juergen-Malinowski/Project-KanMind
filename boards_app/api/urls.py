@@ -1,10 +1,10 @@
 from django.urls import path
 
-from .views import BoardView, BoardDetailView
+from .views import BoardListView, BoardDetailView
 
 urlpatterns = [
     # Klärung später, ob für GET und POST eine oder zwei Views sinnvoll !
-    path('', BoardView.as_view(), name='boards'),
+    path('', BoardListView.as_view(), name='board-list'),
     
     # für <int:board_id>/ später klären ob GET, UPDATE und DELETE in einer View sinnvoll !
     path('<int:board_id>/', BoardDetailView.as_view(), name='board-detail'),
