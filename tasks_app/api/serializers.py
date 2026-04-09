@@ -30,6 +30,14 @@ class TaskBaseSerializer(serializers.ModelSerializer):
 class AssignedToMeTaskSerializer(TaskBaseSerializer):
     """
     Serializer for tasks assigned to the authenticated user.
-    
+
+    Inherits all fields from TaskBaseSerializer.
+    """
+
+
+class ReviewingTaskSerializer(TaskBaseSerializer):
+    """
+    Serializer for tasks reviewed by the authenticated user.
+
     Inherits all fields from TaskBaseSerializer.
     """

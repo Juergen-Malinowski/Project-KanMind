@@ -4,7 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
 from tasks_app.models import Task
-from .serializers import AssignedToMeTaskSerializer
+from .serializers import (
+    AssignedToMeTaskSerializer, ReviewingTaskSerializer
+)
 
 
 class AssignedToMeTaskView(generics.ListAPIView):
@@ -29,8 +31,24 @@ class AssignedToMeTaskView(generics.ListAPIView):
     
 
 
-class ReviewingTaskView(APIView):
-    pass
+class ReviewingTaskView(generics.ListAPIView):
+    """API view to list tasks reviewed by the authenticated user."""
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = ReviewingTaskSerializer
+
+    def get_queryset(self):
+        """Return tasks reviewed by the authenticated user."""    
+
+        return Task.objects.filter(
+            reviewer=self.request.user
+        ).select_related(
+            "board",
+            "assignee",
+            "reviewer",
+        ).annotate(
+            comments_count=Count("comments")
+        )
 
 
 class TaskView(APIView):
