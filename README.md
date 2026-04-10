@@ -70,7 +70,7 @@ python manage.py runserver
     - [from Board](#from-board)
     - [from Task](#from-task)
     - [from Comment](#from-comment)
-  - [Concept](#concept)
+  - [Task Ownership and Responsibilities](#task-ownership-and-responsibilities)
 
 ## Frontend
 
@@ -217,6 +217,7 @@ Represents a work item within a board.
 - `assignee` (User)
 - `reviewer` (User)
 - `members` (User)
+- `created_by` (User)
 - `due_date`
 
 ---
@@ -245,6 +246,7 @@ Represents user-generated activity on a task.
 - `assignee` → User (**n:1**)
 - `reviewer` → User (**n:1**)
 - `members` ↔ User (**m:n**)
+- `created_by` → User (**n:1**)
 
 ### from Comment
 
@@ -253,12 +255,13 @@ Represents user-generated activity on a task.
 
 ---
 
-## Concept
+## Task Ownership and Responsibilities
 
 Each task defines clear responsibilities:
 
 - **Assignee** → responsible for executing the task
 - **Reviewer** → responsible for validating the result
 - **Members** → optional collaborators involved in the task
+- **Creator** → the user who originally created the task (used for permission checks such as deletion)
 
 This structure enables clear task ownership, review workflows, and team collaboration.

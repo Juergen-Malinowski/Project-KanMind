@@ -2,11 +2,11 @@ from django.urls import path
 
 from .views import (
     AssignedToMeTaskView,
-    ReviewingTaskView,
-    TaskView,
-    TaskDetailView,
-    TaskCommentView,
     CommentDetailView,
+    ReviewingTaskView,
+    TaskCommentView,
+    TaskDetailView,
+    TaskView,
 )
 
 urlpatterns = [

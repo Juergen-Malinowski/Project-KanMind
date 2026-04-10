@@ -1,13 +1,12 @@
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework import generics, status
-from rest_framework.authtoken.models import Token
-
 from django.contrib.auth import get_user_model
 
-from .serializers import RegistrationSerializer, LoginSerializer, EmailCheckSerializer
+from rest_framework import generics, status
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .serializers import EmailCheckSerializer, LoginSerializer, RegistrationSerializer
 
 
 User = get_user_model()

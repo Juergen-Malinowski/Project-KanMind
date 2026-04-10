@@ -1,13 +1,17 @@
 from django.db.models import Count
-from rest_framework import generics
+
+from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from tasks_app.models import Task
+
 from .serializers import (
-    TaskBaseSerializer, TaskCreateSerializer
+    TaskBaseSerializer,
+    TaskCreateSerializer,
+    TaskUpdateSerializer,
 )
 
 
@@ -76,7 +80,7 @@ class TaskView(generics.CreateAPIView):
                 "You must be the owner or a member of this board."
             )
         
-        task = serializer.save()
+        task = serializer.save(created_by=request.user)
 
         task = Task.objects.filter(id=task.id).select_related(
             "board",
@@ -93,8 +97,84 @@ class TaskView(generics.CreateAPIView):
 
 
 
-class TaskDetailView(APIView):
-    pass
+class TaskDetailView(generics.GenericAPIView):
+    """API view to update and delete a task."""
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = TaskUpdateSerializer
+    lookup_url_kwarg = "task_id"
+
+    def get_task(self):
+        """Return task with related objects and permissions context."""
+
+        task_id = self.kwargs.get(self.lookup_url_kwarg)
+
+        return Task.objects.filter(id=task_id).select_related(
+            "board",
+            "assignee",
+            "reviewer",
+            "created_by",
+        ).annotate(
+            comments_count=Count("comments")
+        ).first()
+    
+    def patch(self, request, *args, **kwargs):
+        """Update task and return serialized task response."""
+
+        task = self.get_task()
+
+        if task is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        user = request.user
+        is_board_member = task.board.members.filter(id=user.id).exists()
+        is_board_owner = task.board.owner_id == user.id
+
+        if not is_board_member and not is_board_owner:
+            raise PermissionDenied(
+                "You must be the owner or a member of this board."
+            )
+        
+        serializer = self.get_serializer(task, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        task = Task.objects.filter(id=task.id).select_related(
+            "board",
+            "assignee",
+            "reviewer",
+            "created_by",
+        ).annotate(
+            comments_count=Count("comments")
+        ).first()
+
+        response_serializer = TaskBaseSerializer(task)
+
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
+    
+    def delete(self, request, *args, **kwargs):
+        """Delete task if the user is allowed to do so."""
+
+        task = self.get_task()
+
+        if task is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        user = request.user
+
+        is_creator = task.created_by_id == user.id
+        is_board_owner = task.board.owner_id == user.id
+
+        # Only the creator or the board owner is allowed to delete this task.
+        if not is_creator and not is_board_owner:
+            return Response(
+                {"detail": "Only the creator or the board owner can delete this task."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        task.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TaskCommentView(APIView):

@@ -1,14 +1,18 @@
-from django.db.models import Count, Q, Prefetch
+from django.db.models import Count, Prefetch, Q
+
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from boards_app.models import Board
 from tasks_app.models import Task
+
 from .serializers import (
-    BoardListSerializer, BoardCreateSerializer,
-    BoardDetailSerializer, BoardUpdateSerializer,
+    BoardCreateSerializer,
+    BoardDetailSerializer,
+    BoardListSerializer,
+    BoardUpdateSerializer,
 )
 
 
