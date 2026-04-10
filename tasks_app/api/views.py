@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from tasks_app.models import Task
+from tasks_app.models import Comment, Task
 
 from .serializers import (
     CommentCreateSerializer, 
@@ -243,5 +243,40 @@ class CommentShowAndPostView(APIView):
         )
 
 
-class CommentDetailView(APIView):
-    pass
+class CommentDeleteView(APIView):
+    """API view to delete a comment of a task."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get_comment(self, task_id, comment_id):
+        """Return comment object for the given task."""
+
+        return Comment.objects.filter(
+            id=comment_id,
+            task_id=task_id,
+        ).select_related(
+            "author",
+            "task",
+        ).first()
+    
+    def delete(self, request, task_id, comment_id):
+        """Delete comment if the user is the author."""
+
+        comment = self.get_comment(task_id, comment_id)
+
+        if comment is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        if comment.author_id != request.user.id:
+            return Response(
+                {
+                    "detail": (
+                        "Only the creator of this comment can delete it."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        
+        comment.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
