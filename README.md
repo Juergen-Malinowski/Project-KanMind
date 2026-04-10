@@ -1,8 +1,8 @@
 # KanMind Backend
 
-Backend project for the KanMind application built with Django and Django REST Framework.
+Backend for the KanMind application built with Django and Django REST Framework.
 
-## Setup
+## Setup / Quick-Start
 
 Run the following commands to set up the project locally:
 
@@ -44,6 +44,41 @@ python manage.py createsuperuser
 # Run development server
 python manage.py runserver
 ```
+
+## Table of Contents
+
+- [KanMind Backend](#kanmind-backend)
+  - [Setup / Quick-Start](#setup--quick-start)
+  - [Table of Contents](#table-of-contents)
+  - [Frontend](#frontend)
+  - [API Routing Overview](#api-routing-overview)
+  - [Tech Stack](#tech-stack)
+  - [Current Project Structure](#current-project-structure)
+  - [Current Project Status](#current-project-status)
+  - [Environment Setup](#environment-setup)
+    - [Setup instructions](#setup-instructions)
+  - [Custom User Model](#custom-user-model)
+    - [Key characteristics](#key-characteristics)
+    - [Implementation details](#implementation-details)
+    - [Important notes](#important-notes)
+  - [Data Model Overview](#data-model-overview)
+    - [User](#user)
+    - [Board](#board)
+    - [Task](#task)
+    - [Comment](#comment)
+  - [Relationships](#relationships)
+    - [from Board](#from-board)
+    - [from Task](#from-task)
+    - [from Comment](#from-comment)
+  - [Concept](#concept)
+
+## Frontend
+
+The corresponding frontend for this project is provided by the Developer Akademie and can be found here:
+
+[KanMind Frontend Repository](https://github.com/Developer-Akademie-Backendkurs/project.KanMind)
+
+The frontend serves as a reference implementation and can be used to test and interact with the API endpoints of this backend.
 
 ## API Routing Overview
 
@@ -150,7 +185,7 @@ AUTH_USER_MODEL = "auth_app.User"
 - All future relations to users must use `settings.AUTH_USER_MODEL`
 - The model is designed to match the frontend requirements (email-based login and fullname usage)
 
-## 📦 Data Model Overview
+## Data Model Overview
 
 ### User
 
@@ -197,7 +232,7 @@ Represents user-generated activity on a task.
 
 ---
 
-## 🔗 Relationships
+## Relationships
 
 ### from Board
 
@@ -218,7 +253,7 @@ Represents user-generated activity on a task.
 
 ---
 
-## 🧠 Concept
+## Concept
 
 Each task defines clear responsibilities:
 
