@@ -9,6 +9,8 @@ from rest_framework.views import APIView
 from tasks_app.models import Task
 
 from .serializers import (
+    CommentCreateSerializer, 
+    CommentShowSerializer,
     TaskBaseSerializer,
     TaskCreateSerializer,
     TaskUpdateSerializer,
@@ -177,8 +179,68 @@ class TaskDetailView(generics.GenericAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class TaskCommentView(APIView):
-    pass
+class CommentShowAndPostView(APIView):
+    """API view to list and create comments for a task."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get_task(self, task_id):
+        """Return task object."""
+
+        return Task.objects.filter(id=task_id).select_related(
+            "board"
+        ).first()
+    
+    def check_board_permission(self, task, user):
+        """Check if user is board member or owner."""
+
+        is_member = task.board.members.filter(id=user.id).exists()
+        is_owner = task.board.owner_id == user.id
+
+        if not is_member and not is_owner:
+            raise PermissionDenied(
+                "You must be a member or the owner of this board."
+            )
+        
+    def get(self, request, task_id):
+
+        task = self.get_task(task_id)
+
+        if task is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        self.check_board_permission(task, request.user)
+
+        comments = task.comments.select_related("author").all()
+
+        serializer = CommentShowSerializer(comments, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, task_id):
+        """Create a new comment for a task."""
+
+        task = self.get_task(task_id)
+
+        if task is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        
+        self.check_board_permission(task, request.user)
+
+        serializer = CommentCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        comment = serializer.save(
+            task=task,
+            author=request.user,
+        )
+
+        response_serializer = CommentShowSerializer(comment)
+
+        return Response(
+            response_serializer.data,
+            status=status.HTTP_201_CREATED
+        )
 
 
 class CommentDetailView(APIView):

@@ -4,7 +4,7 @@ from rest_framework import serializers
 
 from boards_app.api.serializers import UserMinimalSerializer
 from boards_app.models import Board
-from tasks_app.models import Task
+from tasks_app.models import Comment, Task
 
 
 User = get_user_model()
@@ -132,3 +132,45 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
             )
         
         return attrs
+
+
+class CommentShowSerializer(serializers.ModelSerializer):
+    """Serializer for comment response."""
+
+    author = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = [
+            "id",
+            "created_at",
+            "author",
+            "content",
+        ]
+    
+    def get_author(self, obj):
+        """Return the full name of the comment author."""
+
+        return obj.author.fullname
+    
+
+class CommentCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a comment."""
+
+    class Meta:
+        model = Comment
+        fields = [
+            "content",
+        ]
+
+    def validate_content(self, value):
+        """Validate that comment is not empty."""
+        
+        cleaned_value = value.strip()
+
+        if not cleaned_value:
+            raise serializers.ValidationError(
+                "This field may not be blank."
+            )
+        
+        return cleaned_value
