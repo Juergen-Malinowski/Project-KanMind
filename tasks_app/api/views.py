@@ -8,6 +8,10 @@ from rest_framework.views import APIView
 
 from tasks_app.models import Comment, Task
 
+from .permissions import (
+    check_board_owner_or_member_permission,
+    check_task_delete_permission,
+)
 from .serializers import (
     CommentCreateSerializer, 
     CommentShowSerializer,
@@ -72,15 +76,8 @@ class TaskView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         board = serializer.validated_data["board"]
-        user = request.user
 
-        is_board_member = board.members.filter(id=user.id).exists()
-        is_board_owner = board.owner_id == user.id
-
-        if not is_board_member and not is_board_owner:
-            raise PermissionDenied(
-                "You must be the owner or a member of this board."
-            )
+        check_board_owner_or_member_permission(board, request.user)
         
         task = serializer.save(created_by=request.user)
 
@@ -128,14 +125,7 @@ class TaskDetailView(generics.GenericAPIView):
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        user = request.user
-        is_board_member = task.board.members.filter(id=user.id).exists()
-        is_board_owner = task.board.owner_id == user.id
-
-        if not is_board_member and not is_board_owner:
-            raise PermissionDenied(
-                "You must be the owner or a member of this board."
-            )
+        check_board_owner_or_member_permission(task.board, request.user)
         
         serializer = self.get_serializer(task, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -162,17 +152,7 @@ class TaskDetailView(generics.GenericAPIView):
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        user = request.user
-
-        is_creator = task.created_by_id == user.id
-        is_board_owner = task.board.owner_id == user.id
-
-        # Only the creator or the board owner is allowed to delete this task.
-        if not is_creator and not is_board_owner:
-            return Response(
-                {"detail": "Only the creator or the board owner can delete this task."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        check_task_delete_permission(task, request.user)
         
         task.delete()
 
@@ -191,17 +171,6 @@ class CommentShowAndPostView(APIView):
             "board"
         ).first()
     
-    def check_board_permission(self, task, user):
-        """Check if user is board member or owner."""
-
-        is_member = task.board.members.filter(id=user.id).exists()
-        is_owner = task.board.owner_id == user.id
-
-        if not is_member and not is_owner:
-            raise PermissionDenied(
-                "You must be a member or the owner of this board."
-            )
-        
     def get(self, request, task_id):
 
         task = self.get_task(task_id)
@@ -209,7 +178,7 @@ class CommentShowAndPostView(APIView):
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        self.check_board_permission(task, request.user)
+        check_board_owner_or_member_permission(task.board, request.user)
 
         comments = task.comments.select_related("author").all()
 
@@ -225,7 +194,7 @@ class CommentShowAndPostView(APIView):
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        self.check_board_permission(task, request.user)
+        check_board_owner_or_member_permission(task.board, request.user)
 
         serializer = CommentCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
