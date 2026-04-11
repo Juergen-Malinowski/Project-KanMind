@@ -1,13 +1,16 @@
 from django.db.models import Count, Prefetch, Q
 
 from rest_framework import generics
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from boards_app.models import Board
 from tasks_app.models import Task
 
+from .permissions import (
+    check_board_delete_permission,
+    check_board_owner_or_member_permission,
+)
 from .serializers import (
     BoardCreateSerializer,
     BoardDetailSerializer,
@@ -126,15 +129,9 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
 
         if self.request.method in ["GET", "PATCH"]:
-            if board.owner != user and not board.members.filter(id=user.id).exists():
-                raise PermissionDenied(
-                    "You must be the owner or a member of this board."
-                )
+            check_board_owner_or_member_permission(board, user)
         
         if self.request.method == "DELETE":
-            if board.owner != user:
-                raise PermissionDenied(
-                    "Only the owner can delete this board."
-                )
+            check_board_delete_permission(board, user)
             
         return board
