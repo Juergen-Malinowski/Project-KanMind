@@ -70,6 +70,7 @@ python manage.py runserver
     - [from Board](#from-board)
     - [from Task](#from-task)
     - [from Comment](#from-comment)
+  - [Permissions](#permissions)
   - [Task Ownership and Responsibilities](#task-ownership-and-responsibilities)
 
 ## Frontend
@@ -116,7 +117,7 @@ Current setup includes:
 
 - core project configuration
 - app structure for authentication, boards and tasks
-- dedicated API folders inside each app for serializers, views and URL configuration
+- dedicated API folders inside each app for serializers, views, permissions and URL configuration
 
 ## Current Project Status
 
@@ -128,6 +129,7 @@ Current progress includes:
 - CORS configuration for local frontend-backend communication
 - centralized root URL configuration in `core/urls.py`
 - initial API endpoint structure based on the provided documentation
+- extraction of permission logic into dedicated permissions modules per app
 
 ## Environment Setup
 
@@ -204,6 +206,9 @@ Represents a workspace that contains tasks and members.
 - `owner` (User)
 - `members` (User)
 
+- Task creation and updates are restricted to board owner and members
+- Task deletion is restricted to the creator or the board owner
+
 ---
 
 ### Task
@@ -219,6 +224,9 @@ Represents a work item within a board.
 - `members` (User)
 - `created_by` (User)
 - `due_date`
+
+- Task creation and updates are restricted to board owner and members
+- Task deletion is restricted to the creator or the board owner
 
 ---
 
@@ -255,6 +263,16 @@ Represents user-generated activity on a task.
 - `author` → User (**n:1**)
 
 ---
+
+## Permissions
+
+Permission logic is centralized in dedicated `permissions.py` modules within each app.
+
+This ensures:
+
+- clear separation of concerns
+- reusable permission checks
+- cleaner view implementations
 
 ## Task Ownership and Responsibilities
 
