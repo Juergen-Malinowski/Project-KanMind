@@ -8,8 +8,8 @@ from boards_app.models import Board
 from tasks_app.models import Task
 
 from .permissions import (
-    check_board_delete_permission,
-    check_board_owner_or_member_permission,
+    IsBoardOwner,
+    IsBoardOwnerOrMember,
 )
 from .serializers import (
     BoardCreateSerializer,
@@ -98,6 +98,23 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
     lookup_field = "id"
     lookup_url_kwarg = "board_id"
 
+    def get_permissions(self):
+        """Return permission classes depending on request method."""
+
+        if self.request.method in ["GET", "PATCH"]:
+
+            # get_permissions() overrides permission_classes,
+            # therefore "IsAuthenticated()" must be explicitly included here ...
+            return [IsAuthenticated(), IsBoardOwnerOrMember()]
+        
+        if self.request.method == "DELETE":
+
+            # get_permissions() overrides permission_classes,
+            # therefore "IsAuthenticated()" must be explicitly included here ...
+            return [IsAuthenticated(), IsBoardOwner()]
+        
+        return [IsAuthenticated()]
+
     def get_serializer_class(self):
         """Return serializer depending on request method."""
 
@@ -129,9 +146,9 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
 
         if self.request.method in ["GET", "PATCH"]:
-            check_board_owner_or_member_permission(board, user)
+            self.check_object_permissions(self.request, board)
         
         if self.request.method == "DELETE":
-            check_board_delete_permission(board, user)
+            self.check_object_permissions(self.request, board)
             
         return board
