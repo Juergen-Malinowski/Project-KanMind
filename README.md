@@ -130,6 +130,8 @@ Current progress includes:
 - centralized root URL configuration in `core/urls.py`
 - initial API endpoint structure based on the provided documentation
 - extraction of permission logic into dedicated permissions modules per app
+- migration of permission logic to DRF permission classes (BasePermission)
+- usage of get_permissions() and check_object_permissions() in views
 
 ## Environment Setup
 
@@ -206,8 +208,8 @@ Represents a workspace that contains tasks and members.
 - `owner` (User)
 - `members` (User)
 
-- Task creation and updates are restricted to board owner and members
-- Task deletion is restricted to the creator or the board owner
+- Board access (GET, PATCH) is restricted to board owner and members
+- Board deletion is restricted to the board owner
 
 ---
 
@@ -274,6 +276,20 @@ This ensures:
 - clear separation of concerns
 - reusable permission checks
 - cleaner view implementations
+
+Permissions are implemented using Django REST Framework permission classes based on `BasePermission`.
+
+Object-level permissions are enforced using:
+
+- `get_permissions()` for dynamic permission handling per request method
+- `check_object_permissions()` for object-specific access control
+
+Custom permission classes include:
+
+- `IsBoardOwnerOrMember`
+- `IsBoardOwner`
+- `IsTaskCreatorOrBoardOwner`
+- `IsCommentAuthor`
 
 ## Task Ownership and Responsibilities
 
