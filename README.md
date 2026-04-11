@@ -238,6 +238,7 @@ Represents user-generated activity on a task.
 - `author` (User)
 - `task` (Task)
 - `created_at`
+
 - Only the author of a comment is allowed to delete it
 
 ---

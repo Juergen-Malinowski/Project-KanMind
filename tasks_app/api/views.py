@@ -1,7 +1,6 @@
 from django.db.models import Count
 
 from rest_framework import generics, status
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -9,8 +8,9 @@ from rest_framework.views import APIView
 from tasks_app.models import Comment, Task
 
 from .permissions import (
-    check_board_owner_or_member_permission,
-    check_task_delete_permission,
+    IsBoardOwnerOrMember,
+    IsCommentAuthor,
+    IsTaskCreatorOrBoardOwner,
 )
 from .serializers import (
     CommentCreateSerializer, 
@@ -69,6 +69,13 @@ class TaskView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = TaskCreateSerializer
 
+    def get_permissions(self):
+        """Return permission classes for task creation."""
+
+        # get_permissions() overrides permission_classes,
+        # therefore "IsAuthenticated()" must be explicitly included here ...
+        return [IsAuthenticated(), IsBoardOwnerOrMember()]
+
     def create(self, request, *args, **kwargs):
         """Create task and return serialized task response."""
 
@@ -76,8 +83,7 @@ class TaskView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
 
         board = serializer.validated_data["board"]
-
-        check_board_owner_or_member_permission(board, request.user)
+        self.check_object_permissions(request, board)
         
         task = serializer.save(created_by=request.user)
 
@@ -103,6 +109,20 @@ class TaskDetailView(generics.GenericAPIView):
     serializer_class = TaskUpdateSerializer
     lookup_url_kwarg = "task_id"
 
+    def get_permissions(self):
+        """Return permission classes depending on request method."""
+
+        if self.request.method == "PATCH":
+
+            # get_permissions() overrides permission_classes,
+            # therefore "IsAuthenticated()" must be explicitly included here ...
+            return [IsAuthenticated(), IsBoardOwnerOrMember()]    
+        
+        if self.request.method == "DELETE":
+            return [IsAuthenticated(), IsTaskCreatorOrBoardOwner()]    
+        
+        return [IsAuthenticated()]
+
     def get_task(self):
         """Return task with related objects and permissions context."""
 
@@ -125,7 +145,7 @@ class TaskDetailView(generics.GenericAPIView):
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        check_board_owner_or_member_permission(task.board, request.user)
+        self.check_object_permissions(request, task.board)
         
         serializer = self.get_serializer(task, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -152,7 +172,7 @@ class TaskDetailView(generics.GenericAPIView):
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        check_task_delete_permission(task, request.user)
+        self.check_object_permissions(request, task)
         
         task.delete()
 
@@ -164,6 +184,13 @@ class CommentShowAndPostView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        """Return permission classes for comment list and creation."""
+
+        # get_permissions() overrides permission_classes,
+        # therefore "IsAuthenticated()" must be explicitly included here ...
+        return [IsAuthenticated(), IsBoardOwnerOrMember()]
+
     def get_task(self, task_id):
         """Return task object."""
 
@@ -172,13 +199,14 @@ class CommentShowAndPostView(APIView):
         ).first()
     
     def get(self, request, task_id):
+        """Return all comments for a task."""
 
         task = self.get_task(task_id)
 
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        check_board_owner_or_member_permission(task.board, request.user)
+        self.check_object_permissions(request, task.board)
 
         comments = task.comments.select_related("author").all()
 
@@ -194,7 +222,7 @@ class CommentShowAndPostView(APIView):
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        check_board_owner_or_member_permission(task.board, request.user)
+        self.check_object_permissions(request, task.board)
 
         serializer = CommentCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -217,6 +245,13 @@ class CommentDeleteView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        """Return permission classes for comment deletion."""
+
+        # get_permissions() overrides permission_classes,
+        # therefore "IsAuthenticated()" must be explicitly included here ...
+        return [IsAuthenticated(), IsCommentAuthor()]
+
     def get_comment(self, task_id, comment_id):
         """Return comment object for the given task."""
 
@@ -236,15 +271,7 @@ class CommentDeleteView(APIView):
         if comment is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
         
-        if comment.author_id != request.user.id:
-            return Response(
-                {
-                    "detail": (
-                        "Only the creator of this comment can delete it."
-                    )
-                },
-                status=status.HTTP_403_FORBIDDEN,
-            )
+        self.check_object_permissions(request, comment)
         
         comment.delete()
 

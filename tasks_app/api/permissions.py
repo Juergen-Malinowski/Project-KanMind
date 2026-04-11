@@ -1,32 +1,40 @@
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.permissions import BasePermission
 
 
-def check_board_owner_or_member_permission(board, user):
-    """Check whether user is board owner or board member"""
+class IsTaskCreatorOrBoardOwner(BasePermission):
+    """Allow access only to task creator or board owner."""
 
-    is_board_member = board.members.filter(id=user.id).exists()
-    is_board_owner = board.owner_id == user.id
+    message = "Only the creator or the board owner can delete this task."
 
-    if not is_board_member and not is_board_owner:
-        raise PermissionDenied(
-            "You must be the owner or a member of this board."
-        )
+    def has_object_permission(self, request, view, obj):
+        """Return whether user may delete the task."""
 
-def check_task_delete_permission(task, user):
-    """Check whether user is allowed to delete the task."""
+        is_creator = obj.created_by_id == request.user.id
+        is_board_owner = obj.board.owner_id == request.user.id
 
-    is_creator = task.created_by_id == user.id
-    is_board_owner = task.board.owner_id == user.id
+        return is_creator or is_board_owner
+    
+    
+class IsBoardOwnerOrMember(BasePermission):
+    """Allow access only to board owner or board members."""
 
-    if not is_creator and not is_board_owner:
-        raise PermissionDenied(
-            "Only the creator or the board owner can delete this task."
-        )
+    message = "You must be the owner or a member of this board."
 
-def check_comment_delete_permission(comment, user):
-    """Check whether user is allowed to delete the comment."""
+    def has_object_permission(self, request, view, obj):
+        """Return whether user owns the board or is a board member."""
 
-    if comment.author_id != user.id:
-        raise PermissionDenied(
-            "Only the creator of this comment can delete it."
-        )
+        is_board_member = obj.members.filter(id=request.user.id).exists()
+        is_board_owner = obj.owner_id == request.user.id
+
+        return is_board_member or is_board_owner
+
+
+class IsCommentAuthor(BasePermission):
+    """Allow access only to the author of the comment."""
+
+    message = "Only the creator of this comment can delete it."
+
+    def has_object_permission(self, request, view, obj):
+        """Return whether user is the author of the comment."""
+
+        return obj.author_id == request.user.id
