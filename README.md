@@ -2,6 +2,8 @@
 
 Backend for the KanMind application built with Django and Django REST Framework.
 
+This project was developed as part of the Developer Akademie backend course.
+
 ## Setup / Quick-Start
 
 Run the following commands to set up the project locally:
@@ -53,9 +55,12 @@ python manage.py runserver
   - [Frontend](#frontend)
     - [Important Note](#important-note)
   - [API Routing Overview](#api-routing-overview)
+    - [Authentication](#authentication)
+    - [Boards](#boards)
+    - [Tasks](#tasks)
   - [Tech Stack](#tech-stack)
-  - [Current Project Structure](#current-project-structure)
-  - [Current Project Status](#current-project-status)
+  - [Project Structure](#project-structure)
+  - [Project Status](#project-status)
   - [Environment Setup](#environment-setup)
     - [Setup instructions](#setup-instructions)
   - [Custom User Model](#custom-user-model)
@@ -97,26 +102,29 @@ This means:
 
 ## API Routing Overview
 
-The API routing has been fully structured according to the provided documentation and aligned with the frontend configuration.
+The API routing is fully structured according to the provided specifications and aligned with the frontend configuration.
 
-The following endpoints are prepared:
+The following API endpoints are available:
 
-- Authentication:
-  - /api/registration/
-  - /api/login/
-  - /api/email-check/
+### Authentication
 
-- Boards:
-  - /api/boards/
-  - /api/boards/{board_id}/
+- `/api/registration/`
+- `/api/login/`
+- `/api/email-check/`
 
-- Tasks:
-  - /api/tasks/
-  - /api/tasks/assigned-to-me/
-  - /api/tasks/reviewing/
-  - /api/tasks/{task_id}/
-  - /api/tasks/{task_id}/comments/
-  - /api/tasks/{task_id}/comments/{comment_id}/
+### Boards
+
+- `/api/boards/`
+- `/api/boards/{board_id}/`
+
+### Tasks
+
+- `/api/tasks/`
+- `/api/tasks/assigned-to-me/`
+- `/api/tasks/reviewing/`
+- `/api/tasks/{task_id}/`
+- `/api/tasks/{task_id}/comments/`
+- `/api/tasks/{task_id}/comments/{comment_id}/`
 
 All routes are organized in a modular structure using app-specific API modules and centralized routing via `core/urls.py`.
 
@@ -125,27 +133,37 @@ All routes are organized in a modular structure using app-specific API modules a
 - Django
 - Django REST Framework
 
-## Current Project Structure
+## Project Structure
 
-Current setup includes:
+The project follows a modular and scalable architecture based on Django apps.
 
-- core project configuration
-- app structure for authentication, boards and tasks
-- dedicated API folders inside each app for serializers, views, permissions and URL configuration
+It includes:
 
-## Current Project Status
+- a central `core` project configuration
+- dedicated apps for authentication, boards, and tasks
+- structured API layers within each app, including:
+  - serializers
+  - views
+  - permissions
+  - URL configuration
 
-The backend base setup has been further extended with a modular API routing structure.
+This separation ensures clear responsibilities, maintainability, and extensibility of the codebase.
 
-Current progress includes:
+## Project Status
 
-- integration of token authentication using Django REST Framework
-- CORS configuration for local frontend-backend communication
-- centralized root URL configuration in `core/urls.py`
-- initial API endpoint structure based on the provided documentation
-- extraction of permission logic into dedicated permissions modules per app
-- migration of permission logic to DRF permission classes (BasePermission)
-- usage of get_permissions() and check_object_permissions() in views
+The KanMind backend has been fully implemented and tested.
+
+The project includes:
+
+- a complete authentication system using token-based authentication
+- fully implemented API endpoints for boards, tasks, and comments
+- structured and modular API architecture across all apps
+- object-level permission handling using Django REST Framework
+- integration with the provided frontend for end-to-end testing
+
+All endpoints have been validated using both frontend interaction and API testing tools (e.g. Postman), including correct handling of HTTP status codes and edge cases.
+
+The project is considered feature-complete within the scope of the assignment.
 
 ## Environment Setup
 
@@ -320,3 +338,4 @@ This structure enables clear task ownership, review workflows, and team collabor
 
 - Task deletion is not exposed in the provided frontend UI
 - Some backend features are only testable via API tools (e.g. Postman)
+- These limitations are related to the provided frontend implementation and do not affect the backend functionality.
