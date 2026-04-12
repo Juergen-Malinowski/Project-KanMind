@@ -73,6 +73,7 @@ python manage.py runserver
     - [from Comment](#from-comment)
   - [Permissions](#permissions)
   - [Task Ownership and Responsibilities](#task-ownership-and-responsibilities)
+  - [Known Limitations](#known-limitations)
 
 ## Frontend
 
@@ -314,3 +315,8 @@ Each task defines clear responsibilities:
 - **Creator** → the user who originally created the task (used for permission checks such as deletion)
 
 This structure enables clear task ownership, review workflows, and team collaboration.
+
+## Known Limitations
+
+- Task deletion is not exposed in the provided frontend UI
+- Some backend features are only testable via API tools (e.g. Postman)
