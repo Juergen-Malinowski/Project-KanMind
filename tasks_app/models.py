@@ -74,14 +74,13 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-
     class Meta:
         ordering = ["id"]
-    
+
     def __str__(self):
         """Return string representation of the task."""
         return self.title
-    
+
 
 class Comment(models.Model):
     """Model for a task comment."""
@@ -100,9 +99,7 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ["id"]
-    
+
     def __str__(self):
         """Return string representation of the comment."""
         return f"Comment {self.id} on task {self.task_id}"
-
-

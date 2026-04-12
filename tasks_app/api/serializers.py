@@ -64,7 +64,7 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             "reviewer_id",
             "due_date",
         ]
-    
+
     def validate(self, attrs):
         """Validate board members for assignee and reviewer."""
 
@@ -76,12 +76,12 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"assignee_id": "Assignee must be a board member."}
             )
-        
+
         if reviewer and not board.members.filter(id=reviewer.id).exists():
             raise serializers.ValidationError(
                 {"reviewer_id": "Reviewer must be a board member."}
             )
-        
+
         return attrs
 
 
@@ -113,7 +113,7 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
             "reviewer_id",
             "due_date",
         ]
-    
+
     def validate(self, attrs):
         """Validate board members for assignee and reviewer."""
 
@@ -125,12 +125,12 @@ class TaskUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"assignee_id": "Assignee must be a board member."}
             )
-        
+
         if reviewer and not board.members.filter(id=reviewer.id).exists():
             raise serializers.ValidationError(
-            {"reviewer_id": "Reviewer must be a board member."}
+                {"reviewer_id": "Reviewer must be a board member."}
             )
-        
+
         return attrs
 
 
@@ -147,12 +147,12 @@ class CommentShowSerializer(serializers.ModelSerializer):
             "author",
             "content",
         ]
-    
+
     def get_author(self, obj):
         """Return the full name of the comment author."""
 
         return obj.author.fullname
-    
+
 
 class CommentCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a comment."""
@@ -165,12 +165,12 @@ class CommentCreateSerializer(serializers.ModelSerializer):
 
     def validate_content(self, value):
         """Validate that comment is not empty."""
-        
+
         cleaned_value = value.strip()
 
         if not cleaned_value:
             raise serializers.ValidationError(
                 "This field may not be blank."
             )
-        
+
         return cleaned_value

@@ -20,6 +20,7 @@ class RegistrationView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         """Handle user registration and return auth data."""
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -45,6 +46,7 @@ class LoginView(APIView):
 
     def post(self, request):
         """Authenticate user and return auth token."""
+
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -70,6 +72,7 @@ class EmailCheckView(APIView):
     
     def get(self, request):
         """Return user data if email exists."""
+        
         serializer = EmailCheckSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 

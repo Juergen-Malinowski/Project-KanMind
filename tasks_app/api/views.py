@@ -13,7 +13,7 @@ from .permissions import (
     IsTaskCreatorOrBoardOwner,
 )
 from .serializers import (
-    CommentCreateSerializer, 
+    CommentCreateSerializer,
     CommentShowSerializer,
     TaskBaseSerializer,
     TaskCreateSerializer,
@@ -28,19 +28,21 @@ class AssignedToMeTaskView(generics.ListAPIView):
     serializer_class = TaskBaseSerializer
 
     def get_queryset(self):
-        """Return tasks assigned to the authenticated user."""    
+        """Return tasks assigned to the authenticated user."""
 
         return Task.objects.filter(
             assignee=self.request.user
         ).select_related(
+            # Use select_related (joins) and annotate (aggregations) for
+            # performance optimization
             "board",
             "assignee",
             "reviewer",
         ).annotate(
             comments_count=Count("comments")
         )
-        
-    
+
+
 class ReviewingTaskView(generics.ListAPIView):
     """API view to list tasks reviewed by the authenticated user."""
 
@@ -48,7 +50,7 @@ class ReviewingTaskView(generics.ListAPIView):
     serializer_class = TaskBaseSerializer
 
     def get_queryset(self):
-        """Return tasks reviewed by the authenticated user."""    
+        """Return tasks reviewed by the authenticated user."""
 
         return Task.objects.filter(
             reviewer=self.request.user
@@ -113,10 +115,10 @@ class TaskDetailView(generics.GenericAPIView):
             # get_permissions() overrides permission_classes,
             # therefore "IsAuthenticated()" must be explicitly included here ...
             return [IsAuthenticated(), IsBoardOwnerOrMember()]    
-        
+
         if self.request.method == "DELETE":
             return [IsAuthenticated(), IsTaskCreatorOrBoardOwner()]    
-        
+
         return [IsAuthenticated()]
 
     def get_task(self):
@@ -132,7 +134,7 @@ class TaskDetailView(generics.GenericAPIView):
         ).annotate(
             comments_count=Count("comments")
         ).first()
-    
+
     def patch(self, request, *args, **kwargs):
         """Update task and return serialized task response."""
 
@@ -140,9 +142,9 @@ class TaskDetailView(generics.GenericAPIView):
 
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
         self.check_object_permissions(request, task.board)
-        
+
         serializer = self.get_serializer(task, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -159,7 +161,7 @@ class TaskDetailView(generics.GenericAPIView):
         response_serializer = TaskBaseSerializer(task)
 
         return Response(response_serializer.data, status=status.HTTP_200_OK)
-    
+
     def delete(self, request, *args, **kwargs):
         """Delete task if the user is allowed to do so."""
 
@@ -167,9 +169,9 @@ class TaskDetailView(generics.GenericAPIView):
 
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
         self.check_object_permissions(request, task)
-        
+
         task.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)

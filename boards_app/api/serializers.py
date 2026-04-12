@@ -62,7 +62,7 @@ class BoardCreateSerializer(serializers.ModelSerializer):
 
 
 class UserMinimalSerializer(serializers.ModelSerializer):
-    """Serializer for minimal user data."""
+    """Minimal user serializer used for nested task fields (assignee, reviewer)."""
 
     class Meta:
         model = User
@@ -112,6 +112,7 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 class BoardUpdateSerializer(serializers.ModelSerializer):
     """Serializer for updating board title and members."""
 
+    # Allow updating members via user IDs instead of nested objects
     members = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=User.objects.all(),

@@ -13,8 +13,8 @@ class IsTaskCreatorOrBoardOwner(BasePermission):
         is_board_owner = obj.board.owner_id == request.user.id
 
         return is_creator or is_board_owner
-    
-    
+
+
 class IsBoardOwnerOrMember(BasePermission):
     """Allow access only to board owner or board members."""
 
