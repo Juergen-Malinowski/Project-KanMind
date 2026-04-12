@@ -51,6 +51,7 @@ python manage.py runserver
   - [Setup / Quick-Start](#setup--quick-start)
   - [Table of Contents](#table-of-contents)
   - [Frontend](#frontend)
+    - [Important Note](#important-note)
   - [API Routing Overview](#api-routing-overview)
   - [Tech Stack](#tech-stack)
   - [Current Project Structure](#current-project-structure)
@@ -80,6 +81,18 @@ The corresponding frontend for this project is provided by the Developer Akademi
 [KanMind Frontend Repository](https://github.com/Developer-Akademie-Backendkurs/project.KanMind)
 
 The frontend serves as a reference implementation and can be used to test and interact with the API endpoints of this backend.
+
+### Important Note
+
+The frontend is configured to communicate with a local backend:
+
+`API_BASE_URL = http://127.0.0.1:8000/api/`
+
+This means:
+
+- The backend must be running locally for the frontend to function correctly
+- The deployed frontend (e.g. on a file server) is for UI demonstration only
+- Full functionality requires starting the Django backend locally
 
 ## API Routing Overview
 

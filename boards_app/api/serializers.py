@@ -10,7 +10,7 @@ User = get_user_model()
 
 
 class BoardListSerializer(serializers.ModelSerializer):
-    """Serializer for a board list view"""
+    """Serializer for a board list view."""
 
     member_count = serializers.IntegerField(read_only=True)
     ticket_count = serializers.IntegerField(read_only=True)
@@ -70,7 +70,7 @@ class UserMinimalSerializer(serializers.ModelSerializer):
 
 
 class TaskInBoardDetailSerializer(serializers.ModelSerializer):
-    """Serializer for task data inside board detail view"""
+    """Serializer for task data inside board detail view."""
 
     assignee = UserMinimalSerializer(read_only=True, allow_null=True)
     reviewer = UserMinimalSerializer(read_only=True, allow_null=True)
@@ -110,7 +110,7 @@ class BoardDetailSerializer(serializers.ModelSerializer):
 
 
 class BoardUpdateSerializer(serializers.ModelSerializer):
-    """Serializer für updating board title and members."""
+    """Serializer for updating board title and members."""
 
     members = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -123,7 +123,7 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
         fields = ["title", "members"]
 
     def update(self, instance, validated_data):
-        """Update board title and members"""
+        """Update board title and members."""
 
         members = validated_data.pop("members", None)
 

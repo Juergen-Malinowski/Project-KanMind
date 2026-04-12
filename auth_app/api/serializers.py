@@ -78,7 +78,7 @@ class LoginSerializer(serializers.Serializer):
 
 
 class EmailCheckSerializer(serializers.Serializer):
-    """Serializer for email existence check"""
+    """Serializer for email existence check."""
 
     email = serializers.EmailField()
 

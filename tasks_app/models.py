@@ -73,12 +73,7 @@ class Task(models.Model):
     due_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    # Optional: track who created the task (not confirmed by frontend yet) ...
-    # created_by = models.ForeignKey(
-    #     settings.AUTH_USER_MODEL,
-    #     on_delete=models.CASCADE,
-    #     related_name="created_tasks",
-    # )
+
 
     class Meta:
         ordering = ["id"]

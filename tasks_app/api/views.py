@@ -41,8 +41,6 @@ class AssignedToMeTaskView(generics.ListAPIView):
         )
         
     
-
-
 class ReviewingTaskView(generics.ListAPIView):
     """API view to list tasks reviewed by the authenticated user."""
 
@@ -98,8 +96,6 @@ class TaskView(generics.CreateAPIView):
         response_serializer = TaskBaseSerializer(task)
 
         return Response(response_serializer.data, status=201)
-
-
 
 
 class TaskDetailView(generics.GenericAPIView):
