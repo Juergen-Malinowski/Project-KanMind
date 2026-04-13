@@ -1,4 +1,5 @@
 from django.db.models import Count
+from django.http import Http404
 
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
@@ -305,37 +306,31 @@ class CommentShowAndPostView(APIView):
         )
 
 
-class CommentDeleteView(APIView):
-    """API view to delete a comment of a task."""
+class CommentDeleteView(generics.DestroyAPIView):
+    """API View to delete a comment of a task."""
 
     permission_classes = [IsAuthenticated]
+    lookup_url_kwarg = "comment_id"
 
     def get_permissions(self):
         """Return permission classes for comment deletion."""
 
         return [IsAuthenticated(), IsCommentAuthor()]
 
-    def get_comment(self, task_id, comment_id):
-        """Return comment object for the given task."""
+    def get_object(self):
+        """Return comment object for the given task and comment ID."""
 
-        return Comment.objects.filter(
-            id=comment_id,
-            task_id=task_id,
+        comment = Comment.objects.filter(
+            id=self.kwargs.get("comment_id"),
+            task_id=self.kwargs.get("task_id"),
         ).select_related(
             "author",
             "task",
         ).first()
 
-    def delete(self, request, task_id, comment_id):
-        """Delete comment if the user is the author."""
-
-        comment = self.get_comment(task_id, comment_id)
-
         if comment is None:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            raise Http404
 
-        self.check_object_permissions(request, comment)
+        self.check_object_permissions(self.request, comment)
 
-        comment.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return comment
