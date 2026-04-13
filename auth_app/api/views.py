@@ -69,10 +69,10 @@ class EmailCheckView(APIView):
     """API view to check if an email exists."""
 
     permission_classes = [IsAuthenticated]
-    
+
     def get(self, request):
         """Return user data if email exists."""
-        
+
         serializer = EmailCheckSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
@@ -85,7 +85,7 @@ class EmailCheckView(APIView):
                 {"detail": "Email not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
         return Response (
             {
                 "id": user.id,

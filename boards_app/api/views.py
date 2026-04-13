@@ -29,24 +29,28 @@ class BoardListCreateView(generics.ListCreateAPIView):
         """Return serializer depending on request method."""
         if self.request.method == "POST":
             return BoardCreateSerializer
-        
+
         return BoardListSerializer
 
     def get_queryset(self):
-        """Return filtered and annotated boards."""
+        """
+        Return filtered and annotated boards.
+
+        Uses values_list (method from Django QuerySet) to collect
+        accessible board IDs for __in filtering.
+
+        Uses annotate (method from Django QuerySet) to add
+        calculated board fields without extra queries.
+        """
 
         user = self.request.user
 
-        # Collect accessible board IDs via values_list (method from
-        # Django QuerySet) for later use in __in queries
         accessible_board_ids = Board.objects.filter(
             Q(owner=user) | Q(members=user)
         ).values_list("id", flat=True)
 
         queryset = (
             Board.objects.filter(id__in=accessible_board_ids)
-            # Add calculated (aggregated) fields per board using annotate
-            # (method from Django QuerySet) to avoid extra queries
             .annotate(
                 member_count=Count("members", distinct=True),
                 ticket_count=Count("tasks", distinct=True),
@@ -107,17 +111,20 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
     lookup_url_kwarg = "board_id"
 
     def get_permissions(self):
-        """Return permission classes depending on request method."""
+        """
+        Return permission classes depending on request method.
+
+        get_permissions() overrides permission_classes[],
+        therefore IsAuthenticated() must be explicitly
+        included in get_permissions().
+        """
 
         if self.request.method in ["GET", "PATCH"]:
-
-            # get_permissions() overrides permission_classes[],
-            # therefore "IsAuthenticated()" must be explicitly included here ...
             return [IsAuthenticated(), IsBoardOwnerOrMember()]
 
         if self.request.method == "DELETE":
             return [IsAuthenticated(), IsBoardOwner()]
-        
+
         return [IsAuthenticated()]
 
     def get_serializer_class(self):
@@ -129,10 +136,14 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         return BoardDetailSerializer
 
     def get_queryset(self):
-        """Return queryset with related data for board detail."""
+        """
+        Return queryset with related data for board detail.
 
-        # Load related objects efficiently via select_related and
-        # prefetch_related, then remove duplicates with distinct
+        Loads related objects efficiently via select_related
+        and prefetch_related, then removes duplicates with
+        distinct.
+        """
+
         task_queryset = Task.objects.select_related(
             "assignee",
             "reviewer",
@@ -148,9 +159,13 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         ).distinct()
 
     def get_object(self):
-        """Return board and enforce method-specific permission."""
+        """
+        Return board and enforce method-specific permission.
 
-        # Call parent get_object via super() to preserve built-in DRF behavior
+        Calls parent get_object() via super() to preserve
+        built-in DRF behavior.
+        """
+
         board = super().get_object()
 
         if self.request.method in ["GET", "PATCH"]:

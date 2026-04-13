@@ -40,7 +40,11 @@ class TaskAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    """Admin configuration for comment model."""
+    """
+    Admin configuration for comment model.
+
+    Uses decorator-based registration via @admin.register.
+    """
 
     list_display = ("id", "task", "author", "created_at")
     list_filter = ("created_at",)

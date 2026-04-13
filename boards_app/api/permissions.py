@@ -1,6 +1,6 @@
 from rest_framework.permissions import BasePermission
 
-    
+
 class IsBoardOwnerOrMember(BasePermission):
     """Allow access only to board owner or board members."""
 

@@ -46,13 +46,16 @@ class AssignedToMeTaskView(generics.ListAPIView):
     serializer_class = TaskBaseSerializer
 
     def get_queryset(self):
-        """Return tasks assigned to the authenticated user."""
+        """
+        Return tasks assigned to the authenticated user.
+
+        Uses select_related (joins) and annotate (aggregations)
+        for performance optimization.
+        """
 
         return Task.objects.filter(
             assignee=self.request.user
         ).select_related(
-            # Use select_related (joins) and annotate (aggregations) for
-            # performance optimization
             "board",
             "assignee",
             "reviewer",
@@ -88,10 +91,14 @@ class TaskView(generics.CreateAPIView):
     serializer_class = TaskCreateSerializer
 
     def get_permissions(self):
-        """Return permission classes for task creation."""
+        """
+        Return permission classes for task creation.
 
-        # get_permissions() overrides permission_classes,
-        # therefore "IsAuthenticated()" must be explicitly included here ...
+        get_permissions() overrides permission_classes,
+        therefore IsAuthenticated() must be explicitly
+        included in get_permissions().
+        """
+
         return [IsAuthenticated(), IsBoardOwnerOrMember()]
 
     def get_board(self, board_id):
@@ -186,9 +193,6 @@ class TaskDetailView(generics.GenericAPIView):
         """Return permission classes depending on request method."""
 
         if self.request.method == "PATCH":
-
-            # get_permissions() overrides permission_classes,
-            # therefore "IsAuthenticated()" must be explicitly included here ...
             return [IsAuthenticated(), IsBoardOwnerOrMember()]
 
         if self.request.method == "DELETE":
@@ -250,8 +254,6 @@ class CommentShowAndPostView(APIView):
     def get_permissions(self):
         """Return permission classes for comment list and creation."""
 
-        # get_permissions() overrides permission_classes,
-        # therefore "IsAuthenticated()" must be explicitly included here ...
         return [IsAuthenticated(), IsBoardOwnerOrMember()]
 
     def get_task(self, task_id):
@@ -311,8 +313,6 @@ class CommentDeleteView(APIView):
     def get_permissions(self):
         """Return permission classes for comment deletion."""
 
-        # get_permissions() overrides permission_classes,
-        # therefore "IsAuthenticated()" must be explicitly included here ...
         return [IsAuthenticated(), IsCommentAuthor()]
 
     def get_comment(self, task_id, comment_id):

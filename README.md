@@ -37,7 +37,6 @@ python -c "from django.core.management.utils import get_random_secret_key; print
 # Open .env and insert your SECRET_KEY
 
 # Apply migrations
-python manage.py makemigrations
 python manage.py migrate
 
 # Create superuser

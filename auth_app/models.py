@@ -11,10 +11,10 @@ class UserManager(BaseUserManager):
 
         if not email:
             raise ValueError("The email field is required.")
-        
+
         if not fullname:
             raise ValueError("The fullname field is required.")
-        
+
         email = self.normalize_email(email)
         user = self.model(
             email=email,
@@ -25,7 +25,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
 
         return user
-    
+
     def create_superuser(self, email, fullname, password=None, **extra_fields):
         """Create and return a superuser."""
 
@@ -35,12 +35,12 @@ class UserManager(BaseUserManager):
 
         if extra_fields.get("is_staff") is not True:
             raise ValueError("Superuser must have is_staff=True.")
-        
+
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
-        
+
         return self.create_user(email, fullname, password, **extra_fields)
-    
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     """Custom user model for KanMind."""
@@ -65,6 +65,3 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Return string representation of the user."""
         
         return self.email
-        
-
-

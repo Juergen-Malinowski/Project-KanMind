@@ -24,9 +24,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
                 "A user with this email already exists."
             )
         return email
-    
+
     def validate(self, attrs):
         """Validate that both password fields match."""
+
         password = attrs.get("password")
         repeated_password = attrs.get("repeated_password")
 
@@ -35,9 +36,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
                 {"repeated_password": "Passwords do not match."}
             )
         return attrs
-    
+
     def create(self, validated_data):
         """Create and return a new user instance."""
+
         validated_data.pop("repeated_password")
 
         return User.objects.create_user(
@@ -72,7 +74,7 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 "User account is disabled."
             )
-        
+
         attrs["user"] = user
         return attrs
 
