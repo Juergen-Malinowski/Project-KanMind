@@ -162,7 +162,7 @@ The project includes:
 
 All endpoints have been validated using both frontend interaction and API testing tools (e.g. Postman), including correct handling of HTTP status codes and edge cases.
 
-The project is considered feature-complete within the scope of the assignment.
+The project is considered feature-complete within the defined assignment scope.
 
 ## Environment Setup
 
@@ -204,8 +204,10 @@ This project uses a custom user model based on Django’s `AbstractBaseUser` and
 - A `fullname` field is used instead of separate first and last names
 - The default Django user model is fully replaced via:
 
-```env
-AUTH_USER_MODEL = "auth_app.User"
+In `settings.py`:
+
+```python
+AUTH_USER_MODEL = 'auth_app.User'
 ```
 
 ### Implementation details
