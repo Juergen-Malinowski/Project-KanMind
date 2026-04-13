@@ -15,6 +15,7 @@ from .serializers import (
     BoardCreateSerializer,
     BoardDetailSerializer,
     BoardListSerializer,
+    BoardPatchResponseSerializer,
     BoardUpdateSerializer,
 )
 
@@ -159,3 +160,20 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
             self.check_object_permissions(self.request, board)
 
         return board
+
+    def patch(self, request, *args, **kwargs):
+        """Update board and return patch response data."""
+
+        board = self.get_object()
+
+        serializer = BoardUpdateSerializer(
+            board,
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        response_serializer = BoardPatchResponseSerializer(board)
+        
+        return Response(response_serializer.data, status=200)

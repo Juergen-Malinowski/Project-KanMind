@@ -62,7 +62,7 @@ class BoardCreateSerializer(serializers.ModelSerializer):
 
 
 class UserMinimalSerializer(serializers.ModelSerializer):
-    """Minimal user serializer used for nested task fields (assignee, reviewer)."""
+    """Minimal user serializer used for nested user fields (assignee, members, owner, reviewer)."""
 
     class Meta:
         model = User
@@ -135,5 +135,25 @@ class BoardUpdateSerializer(serializers.ModelSerializer):
         # Replace all members (if provided)
         if members is not None:
             instance.members.set(members)
-        
+
         return instance
+
+
+class BoardPatchResponseSerializer(serializers.ModelSerializer):
+    """Serializer for board patch response with nested owner and members."""
+
+    owner_data = UserMinimalSerializer(source="owner", read_only=True)
+    members_data = UserMinimalSerializer(
+        source="members",
+        many=True,
+        read_only=True,
+    )
+
+    class Meta:
+        model = Board
+        fields = [
+            "id",
+            "title",
+            "owner_data",
+            "members_data",
+        ]
