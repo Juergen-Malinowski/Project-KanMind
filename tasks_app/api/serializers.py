@@ -34,11 +34,12 @@ class TaskBaseSerializer(serializers.ModelSerializer):
 
 
 class TaskCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating a task."""
+    """
+    Serializer for creating a task; uses IntegerField for board to allow
+    manual 404 handling in view instead of automatic 400 validation in serializer.
+    """
 
-    board = serializers.PrimaryKeyRelatedField(
-        queryset=Board.objects.all()
-    )
+    board = serializers.IntegerField(write_only=True)
     assignee_id = serializers.PrimaryKeyRelatedField(
         source="assignee",
         queryset=User.objects.all(),
@@ -64,25 +65,6 @@ class TaskCreateSerializer(serializers.ModelSerializer):
             "reviewer_id",
             "due_date",
         ]
-
-    def validate(self, attrs):
-        """Validate board members for assignee and reviewer."""
-
-        board = attrs.get("board")
-        assignee = attrs.get("assignee")
-        reviewer = attrs.get("reviewer")
-
-        if assignee and not board.members.filter(id=assignee.id).exists():
-            raise serializers.ValidationError(
-                {"assignee_id": "Assignee must be a board member."}
-            )
-
-        if reviewer and not board.members.filter(id=reviewer.id).exists():
-            raise serializers.ValidationError(
-                {"reviewer_id": "Reviewer must be a board member."}
-            )
-
-        return attrs
 
 
 class TaskUpdateSerializer(serializers.ModelSerializer):

@@ -31,7 +31,7 @@ class BoardListCreateView(generics.ListCreateAPIView):
             return BoardCreateSerializer
         
         return BoardListSerializer
-    
+
     def get_queryset(self):
         """Return filtered and annotated boards."""
 
@@ -175,5 +175,5 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         serializer.save()
 
         response_serializer = BoardPatchResponseSerializer(board)
-        
+
         return Response(response_serializer.data, status=200)

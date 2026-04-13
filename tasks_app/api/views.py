@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from boards_app.models import Board
 from tasks_app.models import Comment, Task
 
 from .permissions import (
@@ -19,6 +20,23 @@ from .serializers import (
     TaskCreateSerializer,
     TaskUpdateSerializer,
 )
+
+
+def get_task_with_related_data(task_id):
+    """
+    Return task with related objects and comment count.
+
+    Used to keep task response queries reusable across task views.
+    """
+
+    return Task.objects.filter(id=task_id).select_related(
+        "board",
+        "assignee",
+        "reviewer",
+        "created_by",
+    ).annotate(
+        comments_count=Count("comments")
+    ).first()
 
 
 class AssignedToMeTaskView(generics.ListAPIView):
@@ -76,28 +94,85 @@ class TaskView(generics.CreateAPIView):
         # therefore "IsAuthenticated()" must be explicitly included here ...
         return [IsAuthenticated(), IsBoardOwnerOrMember()]
 
+    def get_board(self, board_id):
+        """
+        Return board object by ID or None if it does not exist.
+
+        Used for manual 404 handling during task creation.
+        """
+
+        return Board.objects.filter(id=board_id).first()
+
+    def get_member_validation_error(self, board, user, field_name):
+        """
+        Return validation response if user is not a board member.
+
+        Keeps member checks reusable for assignee and reviewer validation.
+        """
+
+        if user and not board.members.filter(id=user.id).exists():
+            return Response(
+                {
+                    field_name: (
+                        f"{field_name.replace('_id', '').capitalize()} must "
+                        f"be a board member."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return None
+
+    def get_assignment_validation_error(self, board, data):
+        """
+        Return validation response for invalid assignee or reviewer.
+
+        Combines both assignment checks to keep create() compact.
+        """
+
+        assignee_error = self.get_member_validation_error(
+            board,
+            data.get("assignee"),
+            "assignee_id",
+        )
+        if assignee_error:
+            return assignee_error
+
+        reviewer_error = self.get_member_validation_error(
+            board,
+            data.get("reviewer"),
+            "reviewer_id",
+        )
+        if reviewer_error:
+            return reviewer_error
+
+        return None
+
     def create(self, request, *args, **kwargs):
-        """Create task and return serialized task response."""
+        """
+        Create task and return serialized task response.
+
+        Handles manual board lookup to return 404 for missing boards.
+        """
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        board = self.get_board(data["board"])
 
-        board = serializer.validated_data["board"]
+        if board is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
         self.check_object_permissions(request, board)
-        
-        task = serializer.save(created_by=request.user)
 
-        task = Task.objects.filter(id=task.id).select_related(
-            "board",
-            "assignee",
-            "reviewer",
-        ).annotate(
-            comments_count=Count("comments")
-        ).first()
+        validation_error = self.get_assignment_validation_error(board, data)
+        if validation_error:
+            return validation_error
 
+        task = serializer.save(board=board, created_by=request.user)
+        task = get_task_with_related_data(task.id)
         response_serializer = TaskBaseSerializer(task)
 
-        return Response(response_serializer.data, status=201)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
 class TaskDetailView(generics.GenericAPIView):
@@ -114,26 +189,23 @@ class TaskDetailView(generics.GenericAPIView):
 
             # get_permissions() overrides permission_classes,
             # therefore "IsAuthenticated()" must be explicitly included here ...
-            return [IsAuthenticated(), IsBoardOwnerOrMember()]    
+            return [IsAuthenticated(), IsBoardOwnerOrMember()]
 
         if self.request.method == "DELETE":
-            return [IsAuthenticated(), IsTaskCreatorOrBoardOwner()]    
+            return [IsAuthenticated(), IsTaskCreatorOrBoardOwner()]
 
         return [IsAuthenticated()]
 
     def get_task(self):
-        """Return task with related objects and permissions context."""
+        """
+        Return task with related objects and permissions context.
+
+        Uses shared query helper to avoid duplicated task response logic.
+        """
 
         task_id = self.kwargs.get(self.lookup_url_kwarg)
 
-        return Task.objects.filter(id=task_id).select_related(
-            "board",
-            "assignee",
-            "reviewer",
-            "created_by",
-        ).annotate(
-            comments_count=Count("comments")
-        ).first()
+        return get_task_with_related_data(task_id)
 
     def patch(self, request, *args, **kwargs):
         """Update task and return serialized task response."""
@@ -149,14 +221,7 @@ class TaskDetailView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        task = Task.objects.filter(id=task.id).select_related(
-            "board",
-            "assignee",
-            "reviewer",
-            "created_by",
-        ).annotate(
-            comments_count=Count("comments")
-        ).first()
+        task = get_task_with_related_data(task.id)
 
         response_serializer = TaskBaseSerializer(task)
 
@@ -195,7 +260,7 @@ class CommentShowAndPostView(APIView):
         return Task.objects.filter(id=task_id).select_related(
             "board"
         ).first()
-    
+
     def get(self, request, task_id):
         """Return all comments for a task."""
 
@@ -203,7 +268,7 @@ class CommentShowAndPostView(APIView):
 
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
         self.check_object_permissions(request, task.board)
 
         comments = task.comments.select_related("author").all()
@@ -211,7 +276,7 @@ class CommentShowAndPostView(APIView):
         serializer = CommentShowSerializer(comments, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     def post(self, request, task_id):
         """Create a new comment for a task."""
 
@@ -219,7 +284,7 @@ class CommentShowAndPostView(APIView):
 
         if task is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
         self.check_object_permissions(request, task.board)
 
         serializer = CommentCreateSerializer(data=request.data)
@@ -260,7 +325,7 @@ class CommentDeleteView(APIView):
             "author",
             "task",
         ).first()
-    
+
     def delete(self, request, task_id, comment_id):
         """Delete comment if the user is the author."""
 
@@ -268,9 +333,9 @@ class CommentDeleteView(APIView):
 
         if comment is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
         self.check_object_permissions(request, comment)
-        
+
         comment.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
